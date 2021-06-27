@@ -1,0 +1,78 @@
+#Conexão com a CloudAWS
+provider "aws" {
+    region = "us-east-2"
+    access_key = "YourAcessKey"
+    secret_key = "YourSecretKey"
+    
+  #VPC
+resource "aws_vpc" "vpc_bd" {
+    cidr_block = "10.0.0.0/16"
+    enable_dns_hostnames = true
+}
+#Subnets Privadas
+resource "aws_subnet" "private_subnet_a" {
+    vpc_id = aws_vpc.vpc_bd.id #Associa a VPC "vpc_bd"
+    cidr_block = "10.0.1.0/24" #faixa de rede privada
+      availability_zone = "us-east-2a" #Como foi escolhida a região us-east-2, estão disponíveis as "subregiões A,B,C"
+}
+
+resource "aws_subnet" "private_subnet_b" {
+    vpc_id = aws_vpc.vpc_bd.id
+    cidr_block = "10.0.2.0/24"
+  availability_zone = "us-east-2b"
+}
+
+#grupo de subnets em mais de uma zona de disponibilidade 
+resource "aws_db_subnet_group" "db_subnet_group" {
+ name = "dbsubnet"
+ subnet_ids = [ aws_subnet.private_subnet_a.id, aws_subnet.private_subnet_b.id ]
+    }
+
+#Instancia PostgreSQL com 10GB na versão 13
+resource "aws_db_instance" "postgresqldb1"{
+    identifier = "postgresqldb1"
+    allocated_storage = 10
+    engine = "postgres"
+    engine_version = "13"
+   instance_class = "db.t3.micro"
+   #master_db_instance_id = aws_db_instance.id
+    name = "desafiodba"
+    username ="stone"
+    password = "1q2w3e4r"
+    skip_final_snapshot = true
+    #multi_az = true #Habilita a alta disponibilidade 
+    #db_subnet_group_name = aws_db_subnet_group.db_subnet_group.id
+    backup_retention_period = "2"
+    publicly_accessible = true #false Deverá ser falso para habilitar o acesso ao público
+    parameter_group_name = aws_db_parameter_group.postgresparameter.name
+    enabled_cloudwatch_logs_exports = true #Habilita o monitoramento dos logs do Postgresql
+    #apply_immediately = "true"
+       }
+
+#Cria Replicação da instancia postgresqldb1
+    resource "aws_db_instance" "postgresqldb2"{
+    identifier = "postgresqldb2"
+    allocated_storage = 10
+    engine = "postgres"
+    engine_version = "13"
+   instance_class = "db.t3.micro"
+    name = "desafiodba1"
+    skip_final_snapshot = true
+    multi_az = true
+    replicate_source_db = aws_db_instance.postgresqldb1.id # apontamento do master na réplica
+    apply_immediately = "FALSE"
+}
+
+# Grupo de parametros Postgres
+resource "aws_db_parameter_group" "postgresparameter" {
+    name = "postgresparameter"
+    family = "postgres13"
+parameter {
+    name = "shared_preload_libraries"
+    value = "pgaudit"
+    apply_method = "​immediate"
+}  
+
+}
+  
+}
