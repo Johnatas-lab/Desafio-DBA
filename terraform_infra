@@ -48,6 +48,7 @@ resource "aws_db_instance" "postgresqldb1"{
     publicly_accessible = true #false Deverá ser falso para habilitar o acesso ao público
     parameter_group_name = aws_db_parameter_group.postgresparameter.name
     enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"] #Habilita o monitoramento dos logs do Postgresql
+    performance_insights_enabled = true #Habilita o monitor de performance 
     #apply_immediately = "true"
        }
 
@@ -68,6 +69,7 @@ resource "aws_db_instance" "postgresqldb1"{
 # Grupo de parametros Postgres
 resource "aws_db_parameter_group" "postgresparameter" {
     name = "postgresparameter"
+    
     family = "postgres13"
 parameter {
     name = "shared_preload_libraries"
@@ -84,13 +86,9 @@ comparison_operator= "GreaterThanThreshold"
 metric_name ="ReplicaLag"
 evaluation_periods = "2"
 namespace = "AWS/RDS"
-#period = "5"
 statistic = "Average"
 threshold = "20"
+period = "60"
 alarm_description = "Defasagem na replicação > 20min"
 }
 
-
-/*
-
-*/
