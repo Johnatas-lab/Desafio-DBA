@@ -40,10 +40,10 @@ resource "aws_db_instance" "postgresqldb1"{
     username ="stone"
     password = "1q2w3e4r"
     skip_final_snapshot = true
-    #multi_az = true #Habilita a alta disponibilidade 
-    #db_subnet_group_name = aws_db_subnet_group.db_subnet_group.id
+    multi_az = true #Habilita a alta disponibilidade 
+    db_subnet_group_name = aws_db_subnet_group.db_subnet_group.id
     backup_retention_period = "2"
-    publicly_accessible = true #false Deverá ser falso para habilitar o acesso ao público
+    publicly_accessible = false #Deverá ser falso para não habilitar o acesso ao público
     parameter_group_name = aws_db_parameter_group.postgresparameter.name
     enabled_cloudwatch_logs_exports = true #Habilita o monitoramento dos logs do Postgresql
     #apply_immediately = "true"
@@ -70,7 +70,7 @@ resource "aws_db_parameter_group" "postgresparameter" {
 parameter {
     name = "shared_preload_libraries"
     value = "pgaudit"
-    apply_method = "​immediate"
+    apply_method = "immediate"
 }  
 
 }
