@@ -2,8 +2,8 @@
 #Conexão com a CloudAWS
 provider "aws" {
     region = "us-east-2"
-    access_key = "AKIA5ACLV4SVVE7HIRGD"
-    secret_key = "WggLxiiaEglAp49oxgAfP5xE//h+8h0dm8iMgAg+"
+    access_key = "YOURKEY"
+    secret_key = "YOURKEY"
 }
 
 #VPC
